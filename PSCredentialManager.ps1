@@ -21,7 +21,7 @@ Function Is-PSCredentialObject {
 	}
 
 	Process {
-		if ($InputObject -ne $null -and $InputObject -is [PSCustomObject] -and $clrNamespace -iin $InputObject.TypeNames) {
+		if ($InputObject -ne $null -and $InputObject -is [PSCustomObject] -and $InputObject.TypeNames -icontains $clrNamespace) {
 			$true | Write-Output;
 		} else {
 			$false | Write-Output
@@ -35,7 +35,7 @@ Function Load-PSCredentials {
 
 	if (-not ($Script:DbFolder | Test-Path)) {
 		$parentFolder = $Script:DbFolder | Split-Path -Parent;
-		if (-not ($parentFolder Test-Path)) { throw "Cannot create database file" }
+		if (-not ($parentFolder | Test-Path)) { throw "Cannot create database file" }
 		New-Item -Path:$parentFolder -Name:$Script:DbFolderName -ItemType:Directory | Out-Null;
 	} else {
 		if ($Script:DbFolder | Test-Path -Leaf) {
@@ -64,7 +64,7 @@ Function Save-PSCredentials {
 	Begin {
 		if (-not ($Script:DbFolder | Test-Path)) {
 			$parentFolder = $Script:DbFolder | Split-Path -Parent;
-			if (-not ($parentFolder Test-Path)) { throw "Cannot create database file" }
+			if (-not ($parentFolder | Test-Path)) { throw "Cannot create database file" }
 			New-Item -Path:$parentFolder -Name:$Script:DbFolderName -ItemType:Directory | Out-Null;
 		} else {
 			if ($Script:DbFolder | Test-Path -Leaf) {
@@ -217,18 +217,20 @@ Function New-PSCredentialObject {
 		$PSCredentialObject | Add-Member -Name:"Title" -MemberType:ScriptProperty -PropertyType:[string] -Value:{
 			if ($this._title -eq $null) {
 				$this._title = "";
-			} else if ($this._title -isnot [string]) {
-				$this._title = $this._title.ToString();
+			} else {
+                if ($this._title -isnot [string]) { $this._title = $this._title.ToString() }
 			}
 
 			return $this._title;
 		} -SecondValue:{
 			if ($_ -eq $null) {
 				$this._title = "";
-			} else if ($_ -isnot [string]) {
-				$this._title = $_.ToString();
 			} else {
-				$this._title = $_;
+                if ($_ -isnot [string]) {
+				    $this._title = $_.ToString();
+    			} else {
+    				$this._title = $_;
+                }
 			}
 		};
 
@@ -236,18 +238,20 @@ Function New-PSCredentialObject {
 		$PSCredentialObject | Add-Member -Name:"Login" -MemberType:ScriptProperty -PropertyType:[string] -Value:{
 			if ($this._login -eq $null) {
 				$this._login = "";
-			} else if ($this._login -isnot [string]) {
-				$this._login = $this._login.ToString();
+			} else {
+                if ($this._login -isnot [string]) { $this._login = $this._login.ToString() }
 			}
 
 			return $this._login;
 		} -SecondValue:{
 			if ($_ -eq $null) {
 				$this._login = "";
-			} else if ($_ -isnot [string]) {
-				$this._login = $_.ToString();
 			} else {
-				$this._login = $_;
+                if ($_ -isnot [string]) {
+    				$this._login = $_.ToString();
+    			} else {
+    				$this._login = $_;
+                }
 			}
 		};
 
@@ -255,19 +259,21 @@ Function New-PSCredentialObject {
 		$PSCredentialObject | Add-Member -Name:"Url" -MemberType:ScriptProperty -PropertyType:[string] -Value:{
 			if ($this._url -eq $null) {
 				$this._url = "";
-			} else if ($this._url -isnot [string]) {
-				$this._url = $this._url.ToString();
+			} else {
+                if ($this._url -isnot [string]) { $this._url = $this._url.ToString() }
 			}
 
 			return $this._url;
 		} -SecondValue:{
 			if ($_ -eq $null) {
 				$this._url = "";
-			} else if ($_ -isnot [string]) {
-				$this._url = $_.ToString();
 			} else {
-				$this._url = $_;
-			}
+                if ($_ -isnot [string]) {
+    				$this._url = $_.ToString();
+    			} else {
+    				$this._url = $_;
+    			}
+            }
 		};
 
 		$PSCredentialObject | Add-Member -Name:"_password" -MemberType:NoteProperty -Value:$null;
@@ -328,19 +334,21 @@ Function New-PSCredentialObject {
 		$PSCredentialObject | Add-Member -Name:"Notes" -MemberType:ScriptProperty -PropertyType:[string] -Value:{
 			if ($this._notes -eq $null) {
 				$this._notes = "";
-			} else if ($this._notes -isnot [string]) {
-				$this._notes = $this._notes.ToString();
+			} else {
+                if ($this._notes -isnot [string]) { $this._notes = $this._notes.ToString() }
 			}
 
 			return $this._notes;
 		} -SecondValue:{
 			if ($_ -eq $null) {
 				$this._notes = "";
-			} else if ($_ -isnot [string]) {
-				$this._notes = $_.ToString();
 			} else {
-				$this._notes = $_;
-			}
+                if ($_ -isnot [string]) {
+    				$this._notes = $_.ToString();
+    			} else {
+    				$this._notes = $_;
+    			}
+            }
 		};
 
 		if ($PSCmdlet.ParameterSetName -eq "FromElement") {
@@ -598,7 +606,7 @@ Function New-PasswordListingDataGridView {
 		[Windows.Forms.AnchorStyles]$Anchor = [Windows.Forms.AnchorStyles]::None,
 
 		[Parameter(Mandatory = $false)]
-		[Windows.Forms.Padding]$Margin = New-Object Windows.Forms.Padding(0)
+		[Windows.Forms.Padding]$Margin = (New-Object Windows.Forms.Padding(0))
 	)
 
 	Begin {
@@ -628,13 +636,13 @@ Function New-PasswordListingDataGridView {
 		$PasswordListingDataGridView.ColumnHeadersVisible = true;
 
 		$PasswordListingDataGridView.Columns.Add((New-DataGridViewTextBoxColumn -Name:"idTextBoxColumn" -DataPropertyName:"Id" -Hidden -ValueType:([Guid]))) | Out-Null;
-		$PasswordListingDataGridView.Columns.Add((New-DataGridViewTextBoxColumn -Name:"loginTextBoxColumn" -DataPropertyName:"Login" -HeaderText:"Login"
+		$PasswordListingDataGridView.Columns.Add((New-DataGridViewTextBoxColumn -Name:"loginTextBoxColumn" -DataPropertyName:"Login" -HeaderText:"Login" `
 			-AutoSizeMode:[Windows.Forms.DataGridViewAutoSizeColumnMode]::DisplayedCells -ValueType:([string]) -ReadOnly)) | Out-Null;
-		$PasswordListingDataGridView.Columns.Add((New-DataGridViewTextBoxColumn -Name:"urlTextBoxColumn" -DataPropertyName:"Url" -HeaderText:"Url"
+		$PasswordListingDataGridView.Columns.Add((New-DataGridViewTextBoxColumn -Name:"urlTextBoxColumn" -DataPropertyName:"Url" -HeaderText:"Url" `
 			-AutoSizeMode:[Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill -ValueType:([string]) -ReadOnly)) | Out-Null;
-		$PasswordListingDataGridView.Columns.Add((New-DataGridViewButtonColumn -Name:"openButtonColumn" -Text:"Open" -HeaderText:"" -CommandArg:$Script:EditCommandArg
+		$PasswordListingDataGridView.Columns.Add((New-DataGridViewButtonColumn -Name:"openButtonColumn" -Text:"Open" -HeaderText:"" -CommandArg:$Script:EditCommandArg `
 			-AutoSizeMode:[Windows.Forms.DataGridViewAutoSizeColumnMode]::DisplayedCells -NotResizable)) | Out-Null;
-		$PasswordListingDataGridView.Columns.Add((New-DataGridViewButtonColumn -Name:"deleteButtonColumn" -Text:"Delete" -HeaderText:"" -CommandArg:$Script:DeleteCommandArg
+		$PasswordListingDataGridView.Columns.Add((New-DataGridViewButtonColumn -Name:"deleteButtonColumn" -Text:"Delete" -HeaderText:"" -CommandArg:$Script:DeleteCommandArg `
 			-AutoSizeMode:[Windows.Forms.DataGridViewAutoSizeColumnMode]::DisplayedCells -NotResizable)) | Out-Null;
 
 		$PasswordListingDataGridView.Add_MouseDown({
@@ -646,7 +654,7 @@ Function New-PasswordListingDataGridView {
 			if ($clickedRow.DataBoundItem -eq $null -or $clickedRow.DataBoundItem.Id -eq $null) { return }
 			$clickedCell = $clickedRow.Cells[$hit.ColumnIndex];
 			if ($clickedCell -isnot [Windows.Forms.DataGridViewButtonCell] -or $clickedCell.CommandArg -eq $null) { return }
-			for ($p = $sender.Parent; $p != null; $p = $p.Parent) {
+			for ($p = $sender.Parent; $p -ne $null; $p = $p.Parent) {
 				if ($p -is [Windows.Forms.Form]) {
 					$p.PSUserAction = $sender.CommandArg;
 					$p.PSActionItem = $sender.PSCredentialObjects | Where-Object { $_.Id.Equals($clickedRow.DataBoundItem.Id) };
@@ -692,7 +700,7 @@ Function New-Button {
 		[Windows.Forms.AnchorStyles]$Anchor = ([Windows.Forms.AnchorStyles]::Top -bor [Windows.Forms.AnchorStyles]::Right),
 
 		[Parameter(Mandatory = $false)]
-		[Windows.Forms.Padding]$Margin = New-Object Windows.Forms.Padding(8, 8, 0, 0),
+		[Windows.Forms.Padding]$Margin = (New-Object Windows.Forms.Padding(8, 8, 0, 0)),
 
 		[Parameter(Mandatory = $true, ParameterSetName = "ClickableButton")]
 		[ScriptBlock]$OnClick
@@ -722,7 +730,7 @@ Function New-Button {
 			return $this._commandArg;
 		}
 		$Button.Add_Click({
-			for ($p = $sender.Parent; $p != null; $p = $p.Parent) {
+			for ($p = $sender.Parent; $p -ne $null; $p = $p.Parent) {
 				if ($p -is [Windows.Forms.Form]) {
 					$p.PSUserAction = $sender.CommandArg;
 					$p.Close();
@@ -746,40 +754,40 @@ Function Add-TableLayoutPanelChild {
 		[Windows.Forms.Control]$Child,
 
 		[Parameter(Mandatory = $true, ValueFromPipelineByName = $true)]
-		[ValidateScript({ $_ -ge 0 }]
+		[ValidateScript({ $_ -ge 0 })]
 		[int]$Column,
 
 		[Parameter(Mandatory = $false, ValueFromPipelineByName = $true)]
-		[ValidateScript({ $_ -ge 1 }]
+		[ValidateScript({ $_ -ge 1 })]
 		[int]$ColumnSpan = 1,
 
 		[Parameter(Mandatory = $true, ValueFromPipelineByName = $true)]
-		[ValidateScript({ $_ -ge 0 }]
+		[ValidateScript({ $_ -ge 0 })]
 		[int]$Row,
 
 		[Parameter(Mandatory = $false, ValueFromPipelineByName = $true)]
-		[ValidateScript({ $_ -ge 1 }]
+		[ValidateScript({ $_ -ge 1 })]
 		[int]$RowSpan = 1,
 
 		[Parameter(Mandatory = $false, ValueFromPipelineByName = $true)]
 		[Windows.Forms.SizeType]$RowSizeType = [Windows.Forms.SizeType]::AutoSize,
 
 		[Parameter(Mandatory = $false, ValueFromPipelineByName = $true)]
-		[ValidateScript({ $_ -ge 0 }]
+		[ValidateScript({ $_ -ge 0 })]
 		[float]$RowHeight,
 
 		[Parameter(Mandatory = $false, ValueFromPipelineByName = $true)]
 		[Windows.Forms.SizeType]$ColumnSizeType = [Windows.Forms.SizeType]::AutoSize,
 
 		[Parameter(Mandatory = $false, ValueFromPipelineByName = $true)]
-		[ValidateScript({ $_ -ge 0 }]
+		[ValidateScript({ $_ -ge 0 })]
 		[float]$ColumnWidth
 	)
 
 	Process {
 		$requiredCount = $Column + ($ColumnSpan - 1);
 
-		if ($TableLayoutPanel.ColumnCount -le $requiredCount { $TableLayoutPanel.ColumnCount = $Column + $ColumnSpan }
+		if ($TableLayoutPanel.ColumnCount -le $requiredCount) { $TableLayoutPanel.ColumnCount = $Column + $ColumnSpan }
 		for ($r = $TableLayoutPanel.ColumnStyles.Count; $r -lt $requiredCount; $r++) {
 			$rootTableLayoutPanel.Columntyles.Add((New-Object Windows.Forms.ColumnStyle)) | Out-Null;
 		}
@@ -860,19 +868,21 @@ Function New-PasswordListingWindow {
 	$PasswordListingWindow | Add-Member -Name:"PSUserAction" -MemberType:ScriptProperty -PropertyType:[string] -Value:{
 		if ($this._psUserAction -eq $null) {
 			$this._psUserAction = "";
-		} else if ($this._url -isnot [string]) {
-			$this._psUserAction = $this._psUserAction.ToString();
+		} else {
+            if ($this._url -isnot [string]) { $this._psUserAction = $this._psUserAction.ToString() }
 		}
 
 		return $this._psUserAction;
 	} -SecondValue:{
 		if ($_ -eq $null) {
 			$this._psUserAction = "";
-		} else if ($_ -isnot [string]) {
-			$this._psUserAction = $_.ToString();
 		} else {
-			$this._psUserAction = $_;
-		}
+            if ($_ -isnot [string]) {
+    			$this._psUserAction = $_.ToString();
+    		} else {
+    			$this._psUserAction = $_;
+    		}
+        }
 	};
 
 	$PasswordListingWindow | Add-Member -Name:"_psActionItem" -MemberType:NoteProperty -Value:$null;
